@@ -41,3 +41,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local game data
+high_scores.json
+*.tmp

@@ -28,16 +28,16 @@
 [Scenario B] Win on the first guess, then press New Game
   guess '50'               attempts=1  score=100  status=won      secret=50
                            info: Guess a number between 1 and 100. Attempts left: 7
-                           shown: ['Correct!', 'You won! The secret was 50. Final score: 100']
-  click New Game           attempts=0  score=0    status=playing  secret=18
+                           shown: ['Correct!', 'You won! The secret was 50. Final score: 100', 'New best Normal score!']
+  click New Game           attempts=0  score=0    status=playing  secret=64
                            info: Guess a number between 1 and 100. Attempts left: 8
                            shown: []
-  guess '10'               attempts=1  score=-5   status=playing  secret=18
+  guess '10'               attempts=1  score=-5   status=playing  secret=64
                            info: Guess a number between 1 and 100. Attempts left: 7
                            shown: ['Go HIGHER!']
 
 [Scenario C] Difficulty ranges and secret placement
-  Easy    sidebar=['Range: 1 to 20', 'Attempts allowed: 6'] secret=3
-  Normal  sidebar=['Range: 1 to 100', 'Attempts allowed: 8'] secret=53
-  Hard    sidebar=['Range: 1 to 200', 'Attempts allowed: 8'] secret=55
-  secret 87, switch to Easy: sidebar=['Range: 1 to 20', 'Attempts allowed: 6'] secret=9
+  Easy    sidebar=['Range: 1 to 20', 'Attempts allowed: 6', '🏆 Best Easy score: none yet'] secret=5
+  Normal  sidebar=['Range: 1 to 100', 'Attempts allowed: 8', '🏆 Best Normal score: 100'] secret=18
+  Hard    sidebar=['Range: 1 to 200', 'Attempts allowed: 8', '🏆 Best Hard score: none yet'] secret=47
+  secret 87, switch to Easy: sidebar=['Range: 1 to 20', 'Attempts allowed: 6', '🏆 Best Easy score: none yet'] secret=9

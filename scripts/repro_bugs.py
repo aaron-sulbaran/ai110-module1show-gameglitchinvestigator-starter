@@ -8,7 +8,9 @@ the same scenarios now behave correctly.
 Usage: python scripts/repro_bugs.py
 """
 
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
@@ -19,6 +21,11 @@ APP_PATH = str(REPO_ROOT / "app.py")
 # `streamlit run` puts the app's folder on sys.path; AppTest does not, so
 # without this the `from logic_utils import ...` in app.py fails.
 sys.path.insert(0, str(REPO_ROOT))
+
+# Keep runs reproducible and leave the real high_scores.json alone.
+os.environ["HIGH_SCORES_FILE"] = str(
+    Path(tempfile.mkdtemp()) / "high_scores.json"
+)
 
 
 def start_game(secret: int, difficulty: str = "Normal") -> AppTest:

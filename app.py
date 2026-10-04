@@ -6,6 +6,12 @@ st.session_state, and delegates every rule to the pure functions there.
 
 import streamlit as st
 
+from high_scores import (
+    HIGH_SCORES_PATH,
+    load_high_scores,
+    record_high_score,
+    save_high_scores,
+)
 from logic_utils import (
     DIFFICULTY_SETTINGS,
     check_guess,
@@ -45,6 +51,9 @@ low, high = get_range_for_difficulty(difficulty)
 
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
+# Filled by show_status() at the end of the run, after a win has been
+# recorded, for the same rerun-order reason as status_slot below.
+best_score_slot = st.sidebar.empty()
 
 
 def start_new_game() -> None:
@@ -70,7 +79,10 @@ status_slot = st.empty()
 
 
 def show_status() -> None:
-    """Fill the reserved slot with the range and attempts left."""
+    """Fill the reserved slots with attempts left and the best score."""
+    best = load_high_scores(HIGH_SCORES_PATH).get(difficulty)
+    best_text = "none yet" if best is None else best
+    best_score_slot.caption(f"🏆 Best {difficulty} score: {best_text}")
     attempts_left = attempt_limit - st.session_state.attempts
     status_slot.info(
         f"Guess a number between {low} and {high}. "
@@ -162,6 +174,16 @@ if submit:
                 f"You won! The secret was {st.session_state.secret}. "
                 f"Final score: {st.session_state.score}"
             )
+            # Only wins count toward the high score; a lost game's score
+            # is not an achievement worth keeping.
+            scores, is_new_best = record_high_score(
+                load_high_scores(HIGH_SCORES_PATH),
+                difficulty,
+                st.session_state.score,
+            )
+            if is_new_best:
+                save_high_scores(HIGH_SCORES_PATH, scores)
+                st.success(f"🏆 New best {difficulty} score!")
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"
