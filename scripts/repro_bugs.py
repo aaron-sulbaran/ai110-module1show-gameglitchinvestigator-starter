@@ -8,11 +8,17 @@ the same scenarios now behave correctly.
 Usage: python scripts/repro_bugs.py
 """
 
+import sys
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-APP_PATH = str(Path(__file__).resolve().parent.parent / "app.py")
+REPO_ROOT = Path(__file__).resolve().parent.parent
+APP_PATH = str(REPO_ROOT / "app.py")
+
+# `streamlit run` puts the app's folder on sys.path; AppTest does not, so
+# without this the `from logic_utils import ...` in app.py fails.
+sys.path.insert(0, str(REPO_ROOT))
 
 
 def start_game(secret: int, difficulty: str = "Normal") -> AppTest:
@@ -29,6 +35,8 @@ def shown_messages(app: AppTest) -> list[str]:
 
 
 def report(app: AppTest, event: str) -> None:
+    if app.exception:
+        raise RuntimeError(f"app.py raised during '{event}': {app.exception[0].value}")
     state = app.session_state
     print(
         f"  {event:<24} attempts={state.attempts:<2} score={state.score:<4} "
