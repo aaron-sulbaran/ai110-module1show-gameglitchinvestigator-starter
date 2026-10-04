@@ -1,0 +1,1 @@
+In this Streamlit number guessing game (app.py), the "Go HIGHER / Go LOWER" hints are sometimes correct and sometimes wrong for the same kind of guess. For example, with the secret at 50, a guess of 9 is sometimes reported as "Too High". Explain the root cause of the inconsistent hints, then propose a fix as a code diff. Keep the fix focused on this bug only.
