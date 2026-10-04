@@ -44,19 +44,20 @@ def check_guess(guess, secret):
         return "Win", "🎉 Correct!"
 
     try:
-        # FIXME: Logic breaks here. The messages are swapped relative to the outcomes
+        # FIX: outcome labels were right but the messages were swapped. Claude traced
+        # it during the bug hunt; the regression tests in tests/ pin the direction.
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            return "Too High", "📉 Go LOWER!"
         else:
-            return "Too Low", "📉 Go LOWER!"
+            return "Too Low", "📈 Go HIGHER!"
     except TypeError:
         # FIXME: comparing as strings hides the type bug and orders "9" after "50"
         g = str(guess)
         if g == secret:
             return "Win", "🎉 Correct!"
         if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
+            return "Too High", "📉 Go LOWER!"
+        return "Too Low", "📈 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):

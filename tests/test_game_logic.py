@@ -20,3 +20,14 @@ def test_guess_too_low():
     # If secret is 50 and guess is 40, hint should be "Too Low"
     outcome, _ = check_guess(40, 50)
     assert outcome == "Too Low"
+
+
+# Bug 1: the hint message pointed the player the wrong way.
+def test_too_high_guess_tells_player_to_go_lower():
+    _, message = check_guess(60, 50)
+    assert "LOWER" in message
+
+
+def test_too_low_guess_tells_player_to_go_higher():
+    _, message = check_guess(40, 50)
+    assert "HIGHER" in message
