@@ -1,3 +1,5 @@
+import pytest
+
 from logic_utils import check_guess
 
 # check_guess returns an (outcome, message) tuple, and app.py needs both parts,
@@ -31,3 +33,15 @@ def test_too_high_guess_tells_player_to_go_lower():
 def test_too_low_guess_tells_player_to_go_higher():
     _, message = check_guess(40, 50)
     assert "HIGHER" in message
+
+
+# Bug 2: app.py turned the secret into a str on even attempts, and check_guess
+# swallowed the resulting TypeError and compared the two values as text.
+def test_single_digit_guess_below_two_digit_secret_is_too_low():
+    outcome, _ = check_guess(9, 50)
+    assert outcome == "Too Low"
+
+
+def test_mismatched_types_fail_loudly_instead_of_comparing_as_text():
+    with pytest.raises(TypeError):
+        check_guess(9, "50")

@@ -43,21 +43,15 @@ def check_guess(guess, secret):
     if guess == secret:
         return "Win", "🎉 Correct!"
 
-    try:
-        # FIX: outcome labels were right but the messages were swapped. Claude traced
-        # it during the bug hunt; the regression tests in tests/ pin the direction.
-        if guess > secret:
-            return "Too High", "📉 Go LOWER!"
-        else:
-            return "Too Low", "📈 Go HIGHER!"
-    except TypeError:
-        # FIXME: comparing as strings hides the type bug and orders "9" after "50"
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📉 Go LOWER!"
-        return "Too Low", "📈 Go HIGHER!"
+    # FIX: removed the `except TypeError` fallback that compared values as text
+    # ("9" > "50" is True). A str secret is a caller bug, so it should raise, not
+    # quietly return a wrong hint. Found by asking Claude why hints flipped on
+    # alternating guesses.
+    # FIX: outcome labels were right but the messages were swapped. Claude traced
+    # it during the bug hunt; the regression tests in tests/ pin the direction.
+    if guess > secret:
+        return "Too High", "📉 Go LOWER!"
+    return "Too Low", "📈 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
