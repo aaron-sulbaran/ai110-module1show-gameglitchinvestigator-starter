@@ -1,7 +1,14 @@
-import random
 import streamlit as st
 
-from logic_utils import check_guess, get_range_for_difficulty, parse_guess, update_score
+from logic_utils import (
+    DIFFICULTY_SETTINGS,
+    check_guess,
+    get_attempt_limit,
+    get_range_for_difficulty,
+    new_game_state,
+    parse_guess,
+    update_score,
+)
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -12,46 +19,41 @@ st.sidebar.header("Settings")
 
 difficulty = st.sidebar.selectbox(
     "Difficulty",
-    ["Easy", "Normal", "Hard"],
+    list(DIFFICULTY_SETTINGS),
     index=1,
 )
 
-attempt_limit_map = {
-    "Easy": 6,
-    "Normal": 8,
-    "Hard": 5,
-}
-attempt_limit = attempt_limit_map[difficulty]
-
+attempt_limit = get_attempt_limit(difficulty)
 low, high = get_range_for_difficulty(difficulty)
 
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-# FIXME: the secret is drawn once and never redrawn when the difficulty changes
-if "secret" not in st.session_state:
-    st.session_state.secret = random.randint(low, high)
 
-if "attempts" not in st.session_state:
-    # FIXME: starts at 1 here but New Game resets it to 0
-    st.session_state.attempts = 1
 
-if "score" not in st.session_state:
-    st.session_state.score = 0
+def start_new_game() -> None:
+    st.session_state.update(new_game_state(difficulty))
 
-if "status" not in st.session_state:
-    st.session_state.status = "playing"
 
-if "history" not in st.session_state:
-    st.session_state.history = []
+# FIX: every reset goes through new_game_state(). This one check covers the first
+# page load (no difficulty stored yet) and a difficulty change mid-game, which used
+# to leave a secret like 87 inside Easy's 1 to 20 range. Attempts now start at 0
+# everywhere instead of 1 here and 0 after New Game.
+if st.session_state.get("difficulty") != difficulty:
+    start_new_game()
 
 st.subheader("Make a guess")
 
-# FIXME: range is hardcoded, and this renders before the submit block updates attempts
-st.info(
-    f"Guess a number between 1 and 100. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
+# FIX: Streamlit reruns this script top to bottom on every click, so an st.info
+# drawn here showed the attempt count from before the submit block ran. Reserve
+# the slot now and fill it at the end, after the guess is processed.
+status_slot = st.empty()
+
+
+def show_status() -> None:
+    attempts_left = attempt_limit - st.session_state.attempts
+    status_slot.info(f"Guess a number between {low} and {high}. Attempts left: {attempts_left}")
+
 
 with st.expander("Developer Debug Info"):
     st.write("Secret:", st.session_state.secret)
@@ -73,14 +75,12 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
-# FIXME: New Game never resets status, score, or history, and ignores the difficulty range
 if new_game:
-    st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
-    st.success("New game started.")
+    start_new_game()
     st.rerun()
 
 if st.session_state.status != "playing":
+    show_status()
     if st.session_state.status == "won":
         st.success("You already won. Start a new game to play again.")
     else:
@@ -127,6 +127,8 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+show_status()
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")

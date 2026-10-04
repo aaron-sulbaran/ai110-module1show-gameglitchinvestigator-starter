@@ -1,13 +1,38 @@
+import random
+
+# FIX: single source of truth for every difficulty. The range used to live in three
+# places (this function, the hint text, and New Game's hardcoded randint(1, 100))
+# and they disagreed. Hard was also 1 to 50, an easier range than Normal.
+# Each limit is ceil(log2(range_size + 1)) plus slack: one spare guess on Easy
+# and Normal, zero on Hard, so Hard is winnable only by a perfect binary search.
+DIFFICULTY_SETTINGS = {
+    "Easy": {"range": (1, 20), "attempts": 6},
+    "Normal": {"range": (1, 100), "attempts": 8},
+    "Hard": {"range": (1, 200), "attempts": 8},
+}
+
+
 def get_range_for_difficulty(difficulty: str):
     """Return (low, high) inclusive range for a given difficulty."""
-    # FIXME: Hard (1 to 50) is easier than Normal (1 to 100)
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100
+    return DIFFICULTY_SETTINGS.get(difficulty, DIFFICULTY_SETTINGS["Normal"])["range"]
+
+
+def get_attempt_limit(difficulty: str) -> int:
+    return DIFFICULTY_SETTINGS.get(difficulty, DIFFICULTY_SETTINGS["Normal"])["attempts"]
+
+
+def new_game_state(difficulty: str, rng=random) -> dict:
+    # FIX: one reset path for first load, New Game, and difficulty changes. New Game
+    # used to reset only attempts and secret, leaving status "won" forever.
+    low, high = get_range_for_difficulty(difficulty)
+    return {
+        "secret": rng.randint(low, high),
+        "attempts": 0,
+        "score": 0,
+        "status": "playing",
+        "history": [],
+        "difficulty": difficulty,
+    }
 
 
 def parse_guess(raw: str):
