@@ -88,15 +88,14 @@ if st.session_state.status != "playing":
     st.stop()
 
 if submit:
-    # FIXME: invalid input still consumes an attempt
-    st.session_state.attempts += 1
+    ok, guess_int, err = parse_guess(raw_guess, low, high)
 
-    ok, guess_int, err = parse_guess(raw_guess)
-
+    # FIX: validate before counting. Invalid input used to consume an attempt and
+    # land in the guess history.
     if not ok:
-        st.session_state.history.append(raw_guess)
         st.error(err)
     else:
+        st.session_state.attempts += 1
         st.session_state.history.append(guess_int)
 
         # FIX: the secret used to be cast to str on every even attempt, which made

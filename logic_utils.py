@@ -1,3 +1,4 @@
+import math
 import random
 
 # FIX: single source of truth for every difficulty. The range used to live in three
@@ -35,27 +36,38 @@ def new_game_state(difficulty: str, rng=random) -> dict:
     }
 
 
-def parse_guess(raw: str):
+def parse_guess(raw: str, low: int = 1, high: int = 100):
     """
     Parse user input into an int guess.
 
     Returns: (ok: bool, guess_int: int | None, error_message: str | None)
     """
-    if raw is None:
+    if raw is None or not raw.strip():
         return False, None, "Enter a guess."
-
-    if raw == "":
-        return False, None, "Enter a guess."
+    text = raw.strip()
 
     try:
-        # FIXME: decimals are silently truncated and out-of-range guesses are accepted
-        if "." in raw:
-            value = int(float(raw))
-        else:
-            value = int(raw)
-    except Exception:
-        return False, None, "That is not a number."
+        value = int(text)
+    except ValueError:
+        try:
+            number = float(text)
+        except ValueError:
+            return False, None, "That is not a number."
+        if not math.isfinite(number):
+            return False, None, "That is not a number."
+        if not number.is_integer():
+            # FIX: decimals used to be truncated silently (12.7 became 12). Reject
+            # them and offer the in-range whole numbers on either side. Claude first
+            # suggested a plain rejection; I changed it to suggest the neighbours.
+            neighbours = [n for n in (math.floor(number), math.ceil(number)) if low <= n <= high]
+            if not neighbours:
+                return False, None, f"Whole numbers between {low} and {high} only."
+            return False, None, f"Whole numbers only. Try {' or '.join(map(str, neighbours))}?"
+        value = int(number)
 
+    # FIX: out-of-range guesses used to be accepted and burn an attempt.
+    if not low <= value <= high:
+        return False, None, f"Pick a number between {low} and {high}."
     return True, value, None
 
 
