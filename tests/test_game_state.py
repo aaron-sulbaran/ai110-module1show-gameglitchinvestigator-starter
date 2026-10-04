@@ -1,3 +1,5 @@
+"""Tests for difficulty settings and the new-game reset path."""
+
 import math
 import random
 
@@ -13,7 +15,8 @@ from logic_utils import (
 DIFFICULTIES = list(DIFFICULTY_SETTINGS)
 
 
-# Bug 3: New Game never reset status, score, or history, so a won game stayed won.
+# Bug 3: New Game never reset status, score, or history, so a won game
+# stayed won.
 def test_new_game_state_is_a_clean_slate():
     state = new_game_state("Normal", rng=random.Random(0))
     assert state["status"] == "playing"
@@ -28,18 +31,22 @@ def test_new_game_state_is_a_clean_slate():
 def test_secret_always_inside_the_difficulty_range(difficulty):
     low, high = get_range_for_difficulty(difficulty)
     rng = random.Random(42)
-    secrets = [new_game_state(difficulty, rng=rng)["secret"] for _ in range(500)]
+    secrets = [
+        new_game_state(difficulty, rng=rng)["secret"] for _ in range(500)
+    ]
     assert all(low <= secret <= high for secret in secrets)
 
 
 # Bug 7: Hard (1 to 50) was an easier range than Normal (1 to 100).
 def test_difficulty_ranges_grow_from_easy_to_hard():
-    sizes = [get_range_for_difficulty(d)[1] - get_range_for_difficulty(d)[0] + 1 for d in DIFFICULTIES]
+    ranges = [get_range_for_difficulty(d) for d in DIFFICULTIES]
+    sizes = [high - low + 1 for low, high in ranges]
     assert sizes == sorted(sizes) and len(set(sizes)) == len(sizes)
 
 
 # Binary search halves the candidates each guess, so a range of n numbers needs
-# at most ceil(log2(n + 1)) guesses. Every difficulty must be winnable by perfect play.
+# at most ceil(log2(n + 1)) guesses. Every difficulty must be winnable by
+# perfect play.
 @pytest.mark.parametrize("difficulty", DIFFICULTIES)
 def test_every_difficulty_is_winnable_with_binary_search(difficulty):
     low, high = get_range_for_difficulty(difficulty)

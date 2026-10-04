@@ -1,0 +1,81 @@
+flake8 7.4.1 + flake8-docstrings 1.7.0, before setup.cfg existed. Command: flake8 --select=E,W,F,D logic_utils.py app.py tests scripts
+78 findings: 36 D103 (function docstring), 35 E501 (line > 79), 6 D100 (module docstring), 1 E303 (blank lines).
+
+app.py:1:1: D100 Missing docstring in public module
+app.py:34:1: D103 Missing docstring in public function
+app.py:34:1: E303 too many blank lines (3)
+app.py:38:80: E501 line too long (81 > 79 characters)
+app.py:39:80: E501 line too long (83 > 79 characters)
+app.py:40:80: E501 line too long (80 > 79 characters)
+app.py:53:1: D103 Missing docstring in public function
+app.py:55:80: E501 line too long (96 > 79 characters)
+app.py:93:80: E501 line too long (81 > 79 characters)
+app.py:101:80: E501 line too long (82 > 79 characters)
+logic_utils.py:1:1: D100 Missing docstring in public module
+logic_utils.py:4:80: E501 line too long (83 > 79 characters)
+logic_utils.py:5:80: E501 line too long (81 > 79 characters)
+logic_utils.py:8:80: E501 line too long (80 > 79 characters)
+logic_utils.py:18:80: E501 line too long (86 > 79 characters)
+logic_utils.py:21:1: D103 Missing docstring in public function
+logic_utils.py:22:80: E501 line too long (89 > 79 characters)
+logic_utils.py:25:1: D103 Missing docstring in public function
+logic_utils.py:26:80: E501 line too long (84 > 79 characters)
+logic_utils.py:59:80: E501 line too long (82 > 79 characters)
+logic_utils.py:60:80: E501 line too long (84 > 79 characters)
+logic_utils.py:61:80: E501 line too long (82 > 79 characters)
+logic_utils.py:62:80: E501 line too long (97 > 79 characters)
+logic_utils.py:64:80: E501 line too long (83 > 79 characters)
+logic_utils.py:65:80: E501 line too long (95 > 79 characters)
+logic_utils.py:84:80: E501 line too long (81 > 79 characters)
+logic_utils.py:87:80: E501 line too long (81 > 79 characters)
+logic_utils.py:96:80: E501 line too long (83 > 79 characters)
+scripts/repro_bugs.py:24:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:32:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:37:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:39:80: E501 line too long (87 > 79 characters)
+scripts/repro_bugs.py:49:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:55:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:63:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:72:1: D103 Missing docstring in public function
+scripts/repro_bugs.py:78:80: E501 line too long (88 > 79 characters)
+scripts/repro_bugs.py:83:80: E501 line too long (95 > 79 characters)
+tests/test_game_logic.py:1:1: D100 Missing docstring in public module
+tests/test_game_logic.py:6:80: E501 line too long (87 > 79 characters)
+tests/test_game_logic.py:9:1: D103 Missing docstring in public function
+tests/test_game_logic.py:15:1: D103 Missing docstring in public function
+tests/test_game_logic.py:21:1: D103 Missing docstring in public function
+tests/test_game_logic.py:28:1: D103 Missing docstring in public function
+tests/test_game_logic.py:33:1: D103 Missing docstring in public function
+tests/test_game_logic.py:40:1: D103 Missing docstring in public function
+tests/test_game_logic.py:45:1: D103 Missing docstring in public function
+tests/test_game_state.py:1:1: D100 Missing docstring in public module
+tests/test_game_state.py:16:80: E501 line too long (82 > 79 characters)
+tests/test_game_state.py:17:1: D103 Missing docstring in public function
+tests/test_game_state.py:28:1: D103 Missing docstring in public function
+tests/test_game_state.py:31:80: E501 line too long (81 > 79 characters)
+tests/test_game_state.py:36:1: D103 Missing docstring in public function
+tests/test_game_state.py:37:80: E501 line too long (103 > 79 characters)
+tests/test_game_state.py:42:80: E501 line too long (87 > 79 characters)
+tests/test_game_state.py:44:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:1:1: D100 Missing docstring in public module
+tests/test_parse_guess.py:6:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:10:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:15:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:20:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:28:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:29:80: E501 line too long (92 > 79 characters)
+tests/test_parse_guess.py:32:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:33:80: E501 line too long (88 > 79 characters)
+tests/test_parse_guess.py:34:80: E501 line too long (84 > 79 characters)
+tests/test_parse_guess.py:37:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:38:80: E501 line too long (96 > 79 characters)
+tests/test_parse_guess.py:41:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:46:1: D103 Missing docstring in public function
+tests/test_parse_guess.py:47:80: E501 line too long (88 > 79 characters)
+tests/test_parse_guess.py:51:1: D103 Missing docstring in public function
+tests/test_scoring.py:1:1: D100 Missing docstring in public module
+tests/test_scoring.py:7:1: D103 Missing docstring in public function
+tests/test_scoring.py:11:1: D103 Missing docstring in public function
+tests/test_scoring.py:15:1: D103 Missing docstring in public function
+tests/test_scoring.py:22:1: D103 Missing docstring in public function
+tests/test_scoring.py:22:80: E501 line too long (94 > 79 characters)

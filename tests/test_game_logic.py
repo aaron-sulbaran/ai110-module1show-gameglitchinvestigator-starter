@@ -1,9 +1,12 @@
+"""Tests for check_guess: outcomes, hint direction, and type safety."""
+
 import pytest
 
 from logic_utils import check_guess
 
-# check_guess returns an (outcome, message) tuple, and app.py needs both parts,
-# so these starter tests unpack the outcome instead of comparing the tuple to a string.
+# check_guess returns an (outcome, message) tuple, and app.py needs both
+# parts, so these starter tests unpack the outcome instead of comparing the
+# tuple to a string.
 
 
 def test_winning_guess():

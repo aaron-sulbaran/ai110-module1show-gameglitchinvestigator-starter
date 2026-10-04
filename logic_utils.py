@@ -1,30 +1,76 @@
+"""Pure game logic for the number guessing game.
+
+Everything here is free of Streamlit so it can be unit tested directly.
+app.py is a thin UI layer that calls these functions and stores their
+results in st.session_state.
+"""
+
 import math
 import random
 
-# FIX: single source of truth for every difficulty. The range used to live in three
-# places (this function, the hint text, and New Game's hardcoded randint(1, 100))
-# and they disagreed. Hard was also 1 to 50, an easier range than Normal.
-# Each limit is ceil(log2(range_size + 1)) plus slack: one spare guess on Easy
-# and Normal, zero on Hard, so Hard is winnable only by a perfect binary search.
+# FIX: single source of truth for every difficulty. The range used to live
+# in three places (this module, the hint text, and New Game's hardcoded
+# randint(1, 100)) and they disagreed. Hard was also 1 to 50, an easier
+# range than Normal. Each limit is ceil(log2(range_size + 1)) plus slack:
+# one spare guess on Easy and Normal, zero on Hard, so Hard is winnable
+# only by a perfect binary search.
 DIFFICULTY_SETTINGS = {
     "Easy": {"range": (1, 20), "attempts": 6},
     "Normal": {"range": (1, 100), "attempts": 8},
     "Hard": {"range": (1, 200), "attempts": 8},
 }
+DEFAULT_DIFFICULTY = "Normal"
 
 
-def get_range_for_difficulty(difficulty: str):
-    """Return (low, high) inclusive range for a given difficulty."""
-    return DIFFICULTY_SETTINGS.get(difficulty, DIFFICULTY_SETTINGS["Normal"])["range"]
+def _settings_for(difficulty: str) -> dict:
+    """Return the settings for a difficulty, falling back to Normal."""
+    return DIFFICULTY_SETTINGS.get(
+        difficulty, DIFFICULTY_SETTINGS[DEFAULT_DIFFICULTY]
+    )
+
+
+def get_range_for_difficulty(difficulty: str) -> tuple[int, int]:
+    """Return the inclusive (low, high) range of secrets for a difficulty.
+
+    Args:
+        difficulty: One of the keys of DIFFICULTY_SETTINGS. Unknown values
+            fall back to Normal.
+
+    Returns:
+        A (low, high) tuple; both ends are valid secrets and guesses.
+    """
+    return _settings_for(difficulty)["range"]
 
 
 def get_attempt_limit(difficulty: str) -> int:
-    return DIFFICULTY_SETTINGS.get(difficulty, DIFFICULTY_SETTINGS["Normal"])["attempts"]
+    """Return how many valid guesses a game at this difficulty allows.
+
+    Args:
+        difficulty: One of the keys of DIFFICULTY_SETTINGS. Unknown values
+            fall back to Normal.
+
+    Returns:
+        The maximum number of counted attempts before the game is lost.
+    """
+    return _settings_for(difficulty)["attempts"]
 
 
 def new_game_state(difficulty: str, rng=random) -> dict:
-    # FIX: one reset path for first load, New Game, and difficulty changes. New Game
-    # used to reset only attempts and secret, leaving status "won" forever.
+    """Build the session state for a fresh game.
+
+    FIX: this is the single reset path, used on first load, on New Game,
+    and when the difficulty changes. New Game used to reset only attempts
+    and secret, leaving the status "won" forever.
+
+    Args:
+        difficulty: The difficulty to start at.
+        rng: Anything with a ``randint(a, b)`` method. Defaults to the
+            random module; tests pass a seeded ``random.Random``.
+
+    Returns:
+        A dict with the keys secret, attempts, score, status, history,
+        and difficulty, ready to merge into st.session_state.
+    """
     low, high = get_range_for_difficulty(difficulty)
     return {
         "secret": rng.randint(low, high),
@@ -37,10 +83,17 @@ def new_game_state(difficulty: str, rng=random) -> dict:
 
 
 def parse_guess(raw: str, low: int = 1, high: int = 100):
-    """
-    Parse user input into an int guess.
+    """Validate raw text input and convert it to an in-range int guess.
 
-    Returns: (ok: bool, guess_int: int | None, error_message: str | None)
+    Args:
+        raw: The text the player typed. May be None or blank.
+        low: Smallest valid guess, inclusive.
+        high: Largest valid guess, inclusive.
+
+    Returns:
+        A tuple ``(ok, guess, error)``. On success it is
+        ``(True, guess, None)``; on failure ``(False, None, message)``
+        where message is safe to show the player.
     """
     if raw is None or not raw.strip():
         return False, None, "Enter a guess."
@@ -56,13 +109,17 @@ def parse_guess(raw: str, low: int = 1, high: int = 100):
         if not math.isfinite(number):
             return False, None, "That is not a number."
         if not number.is_integer():
-            # FIX: decimals used to be truncated silently (12.7 became 12). Reject
-            # them and offer the in-range whole numbers on either side. Claude first
-            # suggested a plain rejection; I changed it to suggest the neighbours.
-            neighbours = [n for n in (math.floor(number), math.ceil(number)) if low <= n <= high]
+            # FIX: decimals used to be truncated silently (12.7 became 12).
+            # Reject them and offer the in-range whole numbers on either
+            # side. Claude first suggested a plain rejection; I changed it
+            # to suggest the neighbours.
+            candidates = (math.floor(number), math.ceil(number))
+            neighbours = [n for n in candidates if low <= n <= high]
             if not neighbours:
-                return False, None, f"Whole numbers between {low} and {high} only."
-            return False, None, f"Whole numbers only. Try {' or '.join(map(str, neighbours))}?"
+                message = f"Whole numbers between {low} and {high} only."
+                return False, None, message
+            options = " or ".join(str(n) for n in neighbours)
+            return False, None, f"Whole numbers only. Try {options}?"
         value = int(number)
 
     # FIX: out-of-range guesses used to be accepted and burn an attempt.
@@ -71,32 +128,49 @@ def parse_guess(raw: str, low: int = 1, high: int = 100):
     return True, value, None
 
 
-def check_guess(guess, secret):
-    """
-    Compare guess to secret and return (outcome, message).
+def check_guess(guess: int, secret: int):
+    """Compare a guess to the secret.
 
-    outcome examples: "Win", "Too High", "Too Low"
+    FIX: removed the ``except TypeError`` fallback that compared values as
+    text ("9" > "50" is True). A str secret is a caller bug, so it now
+    raises instead of quietly returning a wrong hint. Found by asking
+    Claude why hints flipped on alternating guesses. The two hint messages
+    were also swapped relative to their outcomes.
+
+    Args:
+        guess: The player's validated guess.
+        secret: The number to find.
+
+    Returns:
+        A tuple ``(outcome, message)`` where outcome is "Win", "Too High",
+        or "Too Low" and message is the hint shown to the player.
+
+    Raises:
+        TypeError: If guess and secret cannot be ordered, e.g. int vs str.
     """
     if guess == secret:
         return "Win", "🎉 Correct!"
-
-    # FIX: removed the `except TypeError` fallback that compared values as text
-    # ("9" > "50" is True). A str secret is a caller bug, so it should raise, not
-    # quietly return a wrong hint. Found by asking Claude why hints flipped on
-    # alternating guesses.
-    # FIX: outcome labels were right but the messages were swapped. Claude traced
-    # it during the bug hunt; the regression tests in tests/ pin the direction.
     if guess > secret:
         return "Too High", "📉 Go LOWER!"
     return "Too Low", "📈 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
-    """Update score based on outcome and attempt number."""
-    # FIX: attempt_number is the 1-based count including this guess, so a first-try
-    # win is worth 100. The old `+ 1` double counted, and the "Too High" branch
-    # added 5 points on even attempts. Kept the original intent otherwise:
-    # -10 win points per extra attempt (floor 10), -5 for every miss.
+    """Return the score after one counted guess.
+
+    FIX: a first-try win now earns 100 (the old ``+ 1`` double counted the
+    attempt), and a "Too High" guess no longer adds points on even
+    attempts. The original intent is otherwise kept.
+
+    Args:
+        current_score: Score before this guess.
+        outcome: "Win", "Too High", or "Too Low" from check_guess.
+        attempt_number: 1-based count of attempts, including this one.
+
+    Returns:
+        The new score: plus 100 minus 10 per extra attempt (never less
+        than 10) for a win, minus 5 for any miss.
+    """
     if outcome == "Win":
         return current_score + max(10, 100 - 10 * (attempt_number - 1))
     if outcome in ("Too High", "Too Low"):

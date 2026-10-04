@@ -1,3 +1,5 @@
+"""Tests for update_score: win points and miss penalties."""
+
 import pytest
 
 from logic_utils import update_score
@@ -19,5 +21,7 @@ def test_win_points_never_drop_below_10():
 # Bug 6: a "Too High" guess on an even attempt used to add 5 points.
 @pytest.mark.parametrize("attempt_number", [1, 2, 3, 4])
 @pytest.mark.parametrize("outcome", ["Too High", "Too Low"])
-def test_every_wrong_guess_costs_5_regardless_of_direction_or_parity(outcome, attempt_number):
+def test_every_wrong_guess_costs_5_regardless_of_direction_or_parity(
+    outcome, attempt_number
+):
     assert update_score(20, outcome, attempt_number) == 15

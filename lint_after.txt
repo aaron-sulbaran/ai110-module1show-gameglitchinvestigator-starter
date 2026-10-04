@@ -1,0 +1,2 @@
+flake8 7.4.1 + flake8-docstrings 1.7.0, config in setup.cfg. Command: flake8 .
+Result: 0 findings.

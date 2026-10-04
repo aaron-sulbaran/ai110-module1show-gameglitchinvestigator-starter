@@ -22,6 +22,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 
 def start_game(secret: int, difficulty: str = "Normal") -> AppTest:
+    """Load the app at a difficulty and pin the secret to a known value."""
     app = AppTest.from_file(APP_PATH, default_timeout=30).run()
     if difficulty != "Normal":
         app.sidebar.selectbox[0].set_value(difficulty).run()
@@ -30,13 +31,20 @@ def start_game(secret: int, difficulty: str = "Normal") -> AppTest:
 
 
 def shown_messages(app: AppTest) -> list[str]:
+    """Return the warning, error, and success texts currently on screen."""
     elements = [*app.warning, *app.error, *app.success]
     return [element.value for element in elements]
 
 
 def report(app: AppTest, event: str) -> None:
+    """Print the game state and visible messages after an event.
+
+    Raises:
+        RuntimeError: If app.py raised, so failures are never hidden.
+    """
     if app.exception:
-        raise RuntimeError(f"app.py raised during '{event}': {app.exception[0].value}")
+        error = app.exception[0].value
+        raise RuntimeError(f"app.py raised during '{event}': {error}")
     state = app.session_state
     print(
         f"  {event:<24} attempts={state.attempts:<2} score={state.score:<4} "
@@ -47,12 +55,14 @@ def report(app: AppTest, event: str) -> None:
 
 
 def guess(app: AppTest, raw: str) -> None:
+    """Type a guess, click Submit, and report the result."""
     app.text_input[0].set_value(raw)
     app.button[0].click().run()
     report(app, f"guess {raw!r}")
 
 
 def scenario_hints_and_scoring() -> None:
+    """Bugs 1, 2, 5, 6, 8: hints, scoring, attempts, and invalid input."""
     print("\n[Scenario A] Normal difficulty, secret pinned to 50")
     app = start_game(secret=50)
     report(app, "page load")
@@ -61,6 +71,7 @@ def scenario_hints_and_scoring() -> None:
 
 
 def scenario_new_game_after_win() -> None:
+    """Bug 3: New Game after a win should start a playable game."""
     print("\n[Scenario B] Win on the first guess, then press New Game")
     app = start_game(secret=50)
     guess(app, "50")
@@ -70,17 +81,20 @@ def scenario_new_game_after_win() -> None:
 
 
 def scenario_difficulty_ranges() -> None:
+    """Bugs 4 and 7: ranges per difficulty and secret placement."""
     print("\n[Scenario C] Difficulty ranges and secret placement")
     for difficulty in ["Easy", "Normal", "Hard"]:
         app = AppTest.from_file(APP_PATH, default_timeout=30).run()
         app.sidebar.selectbox[0].set_value(difficulty).run()
         captions = [caption.value for caption in app.sidebar.caption]
-        print(f"  {difficulty:<7} sidebar={captions} secret={app.session_state.secret}")
+        secret = app.session_state.secret
+        print(f"  {difficulty:<7} sidebar={captions} secret={secret}")
     app = AppTest.from_file(APP_PATH, default_timeout=30).run()
     app.session_state.secret = 87
     app.sidebar.selectbox[0].set_value("Easy").run()
     captions = [caption.value for caption in app.sidebar.caption]
-    print(f"  secret 87, switch to Easy: sidebar={captions} secret={app.session_state.secret}")
+    secret = app.session_state.secret
+    print(f"  secret 87, switch to Easy: sidebar={captions} secret={secret}")
 
 
 if __name__ == "__main__":
