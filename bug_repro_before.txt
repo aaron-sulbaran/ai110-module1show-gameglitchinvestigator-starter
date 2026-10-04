@@ -1,0 +1,43 @@
+
+[Scenario A] Normal difficulty, secret pinned to 50
+  page load                attempts=1  score=0    status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 7
+                           shown: []
+  guess '60'               attempts=2  score=5    status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 7
+                           shown: ['Go HIGHER!']
+  guess '60'               attempts=3  score=0    status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 6
+                           shown: ['Go HIGHER!']
+  guess '40'               attempts=4  score=-5   status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 5
+                           shown: ['Go LOWER!']
+  guess '40'               attempts=5  score=-10  status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 4
+                           shown: ['Go LOWER!']
+  guess '9'                attempts=6  score=-5   status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 3
+                           shown: ['Go HIGHER!']
+  guess '100'              attempts=7  score=-10  status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 2
+                           shown: ['Go HIGHER!']
+  guess 'abc'              attempts=8  score=-10  status=playing  secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 1
+                           shown: ['That is not a number.']
+
+[Scenario B] Win on the first guess, then press New Game
+  guess '50'               attempts=2  score=70   status=won      secret=50
+                           info: Guess a number between 1 and 100. Attempts left: 7
+                           shown: ['Correct!', 'You won! The secret was 50. Final score: 70']
+  click New Game           attempts=0  score=70   status=won      secret=40
+                           info: Guess a number between 1 and 100. Attempts left: 8
+                           shown: ['You already won. Start a new game to play again.']
+  guess '10'               attempts=0  score=70   status=won      secret=40
+                           info: Guess a number between 1 and 100. Attempts left: 8
+                           shown: ['You already won. Start a new game to play again.']
+
+[Scenario C] Difficulty ranges and secret placement
+  Easy    sidebar=['Range: 1 to 20', 'Attempts allowed: 6'] secret=81
+  Normal  sidebar=['Range: 1 to 100', 'Attempts allowed: 8'] secret=43
+  Hard    sidebar=['Range: 1 to 50', 'Attempts allowed: 5'] secret=80
+  secret 87, switch to Easy: sidebar=['Range: 1 to 20', 'Attempts allowed: 6'] secret=87

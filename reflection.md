@@ -12,11 +12,18 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 
 Document at least 3 bugs you found. Add rows as needed.
 
-| Input | Expected Behavior | Actual Behavior | Console Output / Error |
-|-------|-------------------|-----------------|------------------------|
-| | | | |
-| | | | |
-| | | | |
+All rows reproduced with a pinned secret of 50 on Normal unless noted. The scripted run that produced them is `scripts/repro_bugs.py`, and its full output against the starter code is committed as `bug_repro_before.txt`.
+
+| # | Input Used | Expected Behavior | Actual Behavior | Console Error / Output | Suspected Code Location |
+|---|------------|-------------------|-----------------|------------------------|-------------------------|
+| 1 | Guess `60` (secret 50) | "Too High", tell the player to go lower | Outcome is "Too High" but the message says "Go HIGHER!" (and `40` says "Go LOWER!") | none | `check_guess` in `app.py`: the outcome labels are right, the two message strings are swapped |
+| 2 | Guess `9` on the 6th attempt (secret 50) | "Too Low" | "Too High" / "Go HIGHER!" | none (the `TypeError` is swallowed) | `app.py` submit block casts the secret to `str` on every even attempt; `check_guess` then catches the `TypeError` and compares `"9" > "50"` as text |
+| 3 | Win, then click "New Game 🔁", then guess `10` | A fresh game: status playing, score 0, guesses accepted | "You already won. Start a new game to play again." forever; the guess is ignored and score stays 70 | none | `new_game` handler in `app.py` resets `attempts` and `secret` but never `status`, `score`, or `history` |
+| 4 | Secret 87, switch difficulty to Easy (range 1 to 20) | Secret redrawn inside 1 to 20 | Secret stays 87, game is unwinnable; New Game also always draws from 1 to 100 | none | `st.session_state.secret` is only set once; `new_game` hardcodes `random.randint(1, 100)` instead of using `get_range_for_difficulty` |
+| 5 | Page load on Normal (8 attempts allowed) | "Attempts left: 8" and 8 guesses | Shows 7 on load, still shows 7 after the first guess, and the game ends after 7 guesses | none | `attempts` initialised to `1` (but reset to `0` by New Game); the info box renders before the submit block updates the count |
+| 6 | Guess `50` on the first try | A high score for a first-try win | Score 70; and a wrong "Too High" guess on even attempts adds +5 | none | `update_score`: `100 - 10 * (attempt_number + 1)` double counts, and the "Too High" branch rewards even attempts |
+| 7 | Select Hard | A harder game than Normal | Range is 1 to 50 (easier than Normal's 1 to 100); the hint text always says "between 1 and 100" | none | `get_range_for_difficulty` and the hardcoded `st.info` string in `app.py` |
+| 8 | Type `abc` and submit | Error message, attempt not consumed | Error shown, but an attempt is used up and `abc` is added to history | `That is not a number.` | `app.py` submit block increments `attempts` before calling `parse_guess` |
 
 ---
 
