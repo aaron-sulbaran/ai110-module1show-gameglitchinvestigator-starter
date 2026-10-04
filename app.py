@@ -10,11 +10,22 @@ from logic_utils import (
     DIFFICULTY_SETTINGS,
     check_guess,
     get_attempt_limit,
+    guess_temperature,
     get_range_for_difficulty,
     new_game_state,
     parse_guess,
+    summarize_guesses,
     update_score,
 )
+
+# Display colors for each temperature label (Streamlit markdown colors).
+TEMPERATURE_COLORS = {
+    "🎯 Exact": "green",
+    "🔥 Hot": "red",
+    "♨️ Warm": "orange",
+    "🌤️ Cool": "blue",
+    "🧊 Cold": "violet",
+}
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -87,6 +98,21 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+
+def show_summary() -> None:
+    """Show a table of this game's guesses with result and temperature.
+
+    Hidden while hints are off and the game is still running, since the
+    table would reveal the same information as the hints.
+    """
+    history = st.session_state.history
+    game_over = st.session_state.status != "playing"
+    if not history or not (show_hint or game_over):
+        return
+    st.subheader("This game")
+    st.table(summarize_guesses(history, st.session_state.secret, low, high))
+
+
 if new_game:
     start_new_game()
     st.rerun()
@@ -97,6 +123,7 @@ if st.session_state.status != "playing":
         st.success("You already won. Start a new game to play again.")
     else:
         st.error("Game over. Start a new game to try again.")
+    show_summary()
     st.stop()
 
 if submit:
@@ -116,6 +143,11 @@ if submit:
 
         if show_hint:
             st.warning(message)
+            temperature = guess_temperature(
+                guess_int, st.session_state.secret, low, high
+            )
+            color = TEMPERATURE_COLORS[temperature]
+            st.markdown(f"Temperature: :{color}[**{temperature}**]")
 
         st.session_state.score = update_score(
             current_score=st.session_state.score,
@@ -140,6 +172,7 @@ if submit:
                 )
 
 show_status()
+show_summary()
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")

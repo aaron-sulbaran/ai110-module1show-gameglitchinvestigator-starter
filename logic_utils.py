@@ -176,3 +176,60 @@ def update_score(current_score: int, outcome: str, attempt_number: int):
     if outcome in ("Too High", "Too Low"):
         return current_score - 5
     return current_score
+
+
+# Distance thresholds as a fraction of the range size, checked in order. Using
+# a fraction keeps "Hot" meaning the same thing on Easy (1 to 20) and Hard
+# (1 to 200), where a fixed distance like 10 would not.
+TEMPERATURE_BANDS = (
+    (0.05, "🔥 Hot"),
+    (0.15, "♨️ Warm"),
+    (0.30, "🌤️ Cool"),
+)
+
+
+def guess_temperature(guess: int, secret: int, low: int, high: int) -> str:
+    """Describe how close a guess is to the secret, relative to the range.
+
+    Args:
+        guess: The player's validated guess.
+        secret: The number to find.
+        low: Smallest value in the difficulty's range, inclusive.
+        high: Largest value in the difficulty's range, inclusive.
+
+    Returns:
+        "🎯 Exact" for a correct guess, otherwise "🔥 Hot", "♨️ Warm",
+        "🌤️ Cool", or "🧊 Cold" based on distance as a share of the range.
+    """
+    if guess == secret:
+        return "🎯 Exact"
+    closeness = abs(guess - secret) / (high - low + 1)
+    for limit, label in TEMPERATURE_BANDS:
+        if closeness <= limit:
+            return label
+    return "🧊 Cold"
+
+
+def summarize_guesses(history, secret: int, low: int, high: int) -> list:
+    """Build one table row per guess for the session summary.
+
+    Args:
+        history: Valid guesses in the order they were made.
+        secret: The number to find.
+        low: Smallest value in the difficulty's range, inclusive.
+        high: Largest value in the difficulty's range, inclusive.
+
+    Returns:
+        A list of dicts with the keys "#", "Guess", "Result", and
+        "Temperature", ready for st.table.
+    """
+    rows = []
+    for number, guess in enumerate(history, start=1):
+        outcome, _ = check_guess(guess, secret)
+        rows.append({
+            "#": number,
+            "Guess": guess,
+            "Result": outcome,
+            "Temperature": guess_temperature(guess, secret, low, high),
+        })
+    return rows
