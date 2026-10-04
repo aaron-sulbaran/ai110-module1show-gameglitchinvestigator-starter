@@ -81,20 +81,12 @@ def check_guess(guess, secret):
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
     """Update score based on outcome and attempt number."""
+    # FIX: attempt_number is the 1-based count including this guess, so a first-try
+    # win is worth 100. The old `+ 1` double counted, and the "Too High" branch
+    # added 5 points on even attempts. Kept the original intent otherwise:
+    # -10 win points per extra attempt (floor 10), -5 for every miss.
     if outcome == "Win":
-        # FIXME: off by one, a first-try win scores 80 instead of 100
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    if outcome == "Too High":
-        # FIXME: a wrong guess should never add points
-        if attempt_number % 2 == 0:
-            return current_score + 5
+        return current_score + max(10, 100 - 10 * (attempt_number - 1))
+    if outcome in ("Too High", "Too Low"):
         return current_score - 5
-
-    if outcome == "Too Low":
-        return current_score - 5
-
     return current_score
