@@ -113,4 +113,5 @@ The same prompt (`model_comparison/prompt.txt`), on an untouched copy of the sta
 
 **Which did you prefer and why?**
 
+I preferred using Claude Code because it's what I'm generally more used to, however, using Codex via the Codex CLI was a really cool way to receieve a second model opinion without necessarily leaving the Claude Code system. I typically tell Claude to test things with a dedicated testing subagent or other model and for this comparison of the two, Sonnet performed about the same as Codex, yet it was still interesting to see how they both recommended the fixes for the original hallucination. 
 <!-- Your conclusion -->

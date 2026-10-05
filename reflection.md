@@ -4,8 +4,7 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 
 ## 1. What was broken when you started?
 
-- What did the game look like the first time you ran it?
-The game was unwinnable without checking the secret in the developer debug info. It would always tell the player to go lower, even though the number wasn't lower. Then, pressing new game wouldn't start a new game at all.
+- What did the game look like the first time you ran it? The game was unwinnable without checking the secret in the developer debug info. It would always tell the player to go lower, even though the number wasn't lower. The same would happen but vice-versa for any numbers too low, the message would state to go higher. Then, pressing new game wouldn't start a new game at all.
 - List at least two concrete bugs you noticed at the start  
 (for example: "the hints were backwards").
 The hint would permanently state to go lower when the number was instead higher. 
@@ -39,10 +38,10 @@ All rows reproduced with a pinned secret of 50 on Normal unless noted. The scrip
 - Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
   - I used Claude Code as my preferred AI tool for this project.
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-  - I used AI to help me find the source of the bugs I identified, it traced it to [app.py](http://app.py) and then after reviewing the code it also suggested the fix (which was to change the int > str as it was comparing text instead of integers).
+  - I used AI to help me find the source of the bugs I identified, it traced it to app.py and then after reviewing the code it also suggested the fix (which was to change the int > str as it was comparing text instead of integers).
 - Give one example of an AI suggestion you did not accept as written (including what the AI suggested, why you rejected or changed it, and how you verified your version). It does not have to be a suggestion that was wrong: over-engineered, out of scope, harder to read, or a poor fit for this codebase all count.
-  - For decimals, Claude recommended rejecting them with a plain "whole numbers only" message that used up a one of the player's attempt. I pushed back and suggested that it would simply nudge the player to choose one of whole numbers on either side ("Try 12 or 13?"), and dropping any neighbor outside the range.   
-  Why: a bare rejection makes the player retype from scratch and makes them lose an attempt. The suggestion keeps the player's intent without guessing for them, which the starter's silent truncation did.   
+  - For decimals, Claude recommended rejecting them with a plain "whole numbers only" message that used up a one of the player's attempt. I pushed back and suggested that it would simply nudge the player to choose one of whole numbers on either side ("Try 12 or 13?"), and dropping any neighbor outside the range.  
+  Why: a bare rejection makes the player retype from scratch and makes them lose an attempt. The suggestion keeps the player's intent without guessing for them, which the starter's silent truncation did.  
   Verification: `test_decimal_is_rejected_with_both_neighbours_suggested`, the two range-edge tests (`100.5` → "Try 100?", `0.5` → "Try 1?"), and typing 12.7 in the live app.
 
 ---
@@ -52,7 +51,7 @@ All rows reproduced with a pinned secret of 50 on Normal unless noted. The scrip
 ## 3. Debugging and testing your fixes
 
 - How did you decide whether a bug was really fixed?
-  - After verifying the bugsd visually, I would write a test that was expected to fail, implemented the bug fix, and then ran the test again to make sure it passed. 
+  - After verifying the bugsd visually, I would write a test that was expected to fail, implemented the bug fix, and then ran the test again to make sure it passed.
 - Describe at least one test you ran (manual or using pytest) and what it showed you about your code.
   - One of the first tests I wanted to write was one that tackled the new game reset issue which I edned up writing with Claude as def test_new_game_state_is_a_clean_slate(): , where we defined the different states of the game from Normal to playing to new.
 - Did AI help you design or understand any tests? How?
@@ -78,5 +77,5 @@ All rows reproduced with a pinned secret of 50 on Normal unless noted. The scrip
 - What is one thing you would do differently next time you work with AI on a coding task?
   - I already do this but I have found that breaking tasks down, in this case bug fixes, into one task and one commit for each is the best way to maintain a trace or regression path in case something goes wrong.
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
-  - Watch for any behavior from the model that catches an exception and continues writing code without addressing it. 
+  - Watch for any behavior from the model that catches an exception and continues writing code without addressing it.
 
